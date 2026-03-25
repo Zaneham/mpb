@@ -5,6 +5,46 @@
 
 #include "mpb.h"
 
+/* ---- JSON field extraction from a block of text ----
+ * Searches for "key": "value" with tolerance for whitespace
+ * after the colon. Copies value into out, max bytes.
+ * Returns pointer to value start, or NULL on miss.
+ * One function to rule them all, instead of hardcoded
+ * offsets scattered across 500 lines. */
+
+static const char *
+jfld(const char *block, int scope, const char *key,
+     char *out, int max)
+{
+    char pat[128];
+    const char *p, *end;
+    int klen, slen;
+
+    klen = snprintf(pat, sizeof(pat), "\"%s\":", key);
+    if (klen <= 0) return NULL;
+
+    p = strstr(block, pat);
+    if (!p || (scope > 0 && p - block > scope)) return NULL;
+    p += klen;
+
+    /* Skip whitespace */
+    while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') p++;
+
+    /* Expect opening quote */
+    if (*p != '"') return NULL;
+    p++;
+
+    /* Find closing quote */
+    end = strchr(p, '"');
+    if (!end) return NULL;
+
+    slen = (int)(end - p);
+    if (slen >= max) slen = max - 1;
+    memcpy(out, p, (size_t)slen);
+    out[slen] = '\0';
+    return p;
+}
+
 #ifdef _WIN32
 #include <direct.h>
 #define mpb_mkdir(p) _mkdir(p)
@@ -78,6 +118,30 @@ mpb_install(const char *name, const char *dest)
             if (rc != 0) {
                 fprintf(stderr, "mpb: clone failed\n");
                 return -1;
+            }
+        }
+        /* Write package.json into the cloned directory so
+         * list/update/remove can find it later */
+        {
+            char ppath[MPB_PATH_LEN];
+            FILE *pf;
+            snprintf(ppath, sizeof(ppath), "%s/%s/package.json",
+                     dest, name);
+            pf = fopen(ppath, "w");
+            if (pf) {
+                fprintf(pf, "{\n");
+                fprintf(pf, "  \"name\": \"%s\",\n", pkg.name);
+                fprintf(pf, "  \"version\": \"%s\",\n", pkg.version);
+                fprintf(pf, "  \"description\": \"%s\",\n",
+                        pkg.description);
+                fprintf(pf, "  \"author\": \"%s\",\n", pkg.author);
+                fprintf(pf, "  \"license\": \"%s\",\n", pkg.license);
+                fprintf(pf, "  \"language\": \"%s\",\n",
+                        mpb_lang_str(pkg.language));
+                fprintf(pf, "  \"repository\": \"%s\"\n",
+                        pkg.repository);
+                fprintf(pf, "}\n");
+                fclose(pf);
             }
         }
         printf("mpb: installed %s v%s\n", pkg.name, pkg.version);
@@ -178,75 +242,18 @@ mpb_search(const char *query)
 
     printf("mpb: searching for '%s'...\n\n", query);
 
-    /* Walk through the JSON array looking for matches */
     p = buf;
-    while ((p = strstr(p, "\"name\":\"")) != NULL) {
+    while ((p = strstr(p, "\"name\":")) != NULL) {
         char name[MPB_NAME_LEN] = {0};
         char desc[MPB_DESC_LEN] = {0};
         char ver[MPB_VER_LEN] = {0};
         char lang[32] = {0};
-        const char *block = p;
 
-        /* Extract fields from this entry */
-        {
-            const char *n = p + 8;
-            const char *end = strchr(n, '"');
-            if (end) {
-                int len = (int)(end - n);
-                if (len >= MPB_NAME_LEN) len = MPB_NAME_LEN - 1;
-                memcpy(name, n, (size_t)len);
-            }
-        }
+        jfld(p, 500, "name", name, MPB_NAME_LEN);
+        jfld(p, 500, "description", desc, MPB_DESC_LEN);
+        jfld(p, 500, "version", ver, MPB_VER_LEN);
+        jfld(p, 500, "language", lang, 32);
 
-        /* Find description nearby */
-        {
-            const char *d = strstr(block, "\"description\":\"");
-            if (d && d - block < 500) {
-                d += 15;
-                {
-                    const char *end = strchr(d, '"');
-                    if (end) {
-                        int len = (int)(end - d);
-                        if (len >= MPB_DESC_LEN) len = MPB_DESC_LEN - 1;
-                        memcpy(desc, d, (size_t)len);
-                    }
-                }
-            }
-        }
-
-        /* Find version */
-        {
-            const char *v = strstr(block, "\"version\":\"");
-            if (v && v - block < 500) {
-                v += 11;
-                {
-                    const char *end = strchr(v, '"');
-                    if (end) {
-                        int len = (int)(end - v);
-                        if (len >= MPB_VER_LEN) len = MPB_VER_LEN - 1;
-                        memcpy(ver, v, (size_t)len);
-                    }
-                }
-            }
-        }
-
-        /* Find language */
-        {
-            const char *l = strstr(block, "\"language\":\"");
-            if (l && l - block < 500) {
-                l += 12;
-                {
-                    const char *end = strchr(l, '"');
-                    if (end) {
-                        int len = (int)(end - l);
-                        if (len >= 31) len = 31;
-                        memcpy(lang, l, (size_t)len);
-                    }
-                }
-            }
-        }
-
-        /* Check if query matches name or description */
         if (strstr(name, query) || strstr(desc, query)) {
             printf("  %-20s %8s  [%s]  %s\n", name, ver, lang, desc);
             count++;
@@ -315,11 +322,9 @@ mpb_list(const char *dir)
     char line[256];
     int count = 0;
 
-#ifdef _WIN32
-    snprintf(cmd, sizeof(cmd), "dir /b /ad \"%s\" 2>nul", dir);
-#else
+    /* Use ls everywhere — even on Windows we compile under
+     * Git Bash, so popen runs through bash, not cmd.exe. */
     snprintf(cmd, sizeof(cmd), "ls -1 \"%s\" 2>/dev/null", dir);
-#endif
 
     fp = popen(cmd, "r");
     if (!fp) {
@@ -452,11 +457,10 @@ mpb_update(const char *name, const char *dir)
     }
     fclose(fp);
 
-    /* Check it's a git repo (has .git) */
-    snprintf(gitdir, sizeof(gitdir), "%s/%s/.git", dir, name);
+    /* Check it's a git repo (has .git/HEAD) */
+    snprintf(gitdir, sizeof(gitdir), "%s/%s/.git/HEAD", dir, name);
     fp = fopen(gitdir, "r");
     if (!fp) {
-        /* Not a git clone, try re-install */
         fprintf(stderr,
             "mpb: '%s' was not installed via git, use remove + install\n",
             name);
@@ -500,79 +504,18 @@ mpb_search_all(void)
     printf("mpb: all packages in registry\n\n");
 
     p = buf;
-    while ((p = strstr(p, "\"name\":\"")) != NULL) {
+    while ((p = strstr(p, "\"name\":")) != NULL) {
         char name[MPB_NAME_LEN] = {0};
         char desc[MPB_DESC_LEN] = {0};
         char ver[MPB_VER_LEN] = {0};
         char lang[32] = {0};
         char lic[MPB_NAME_LEN] = {0};
-        const char *block = p;
 
-        {
-            const char *n = p + 8;
-            const char *end = strchr(n, '"');
-            if (end) {
-                int len = (int)(end - n);
-                if (len >= MPB_NAME_LEN) len = MPB_NAME_LEN - 1;
-                memcpy(name, n, (size_t)len);
-            }
-        }
-        {
-            const char *d = strstr(block, "\"description\":\"");
-            if (d && d - block < 500) {
-                d += 15;
-                {
-                    const char *end = strchr(d, '"');
-                    if (end) {
-                        int len = (int)(end - d);
-                        if (len >= MPB_DESC_LEN) len = MPB_DESC_LEN - 1;
-                        memcpy(desc, d, (size_t)len);
-                    }
-                }
-            }
-        }
-        {
-            const char *v = strstr(block, "\"version\":\"");
-            if (v && v - block < 500) {
-                v += 11;
-                {
-                    const char *end = strchr(v, '"');
-                    if (end) {
-                        int len = (int)(end - v);
-                        if (len >= MPB_VER_LEN) len = MPB_VER_LEN - 1;
-                        memcpy(ver, v, (size_t)len);
-                    }
-                }
-            }
-        }
-        {
-            const char *l = strstr(block, "\"language\":\"");
-            if (l && l - block < 500) {
-                l += 12;
-                {
-                    const char *end = strchr(l, '"');
-                    if (end) {
-                        int len = (int)(end - l);
-                        if (len >= 31) len = 31;
-                        memcpy(lang, l, (size_t)len);
-                    }
-                }
-            }
-        }
-        {
-            const char *c = strstr(block, "\"license\":\"");
-            if (c && c - block < 500) {
-                c += 11;
-                {
-                    const char *end = strchr(c, '"');
-                    if (end) {
-                        int len = (int)(end - c);
-                        if (len >= MPB_NAME_LEN) len = MPB_NAME_LEN - 1;
-                        memcpy(lic, c, (size_t)len);
-                    }
-                }
-            }
-        }
+        jfld(p, 500, "name", name, MPB_NAME_LEN);
+        jfld(p, 500, "description", desc, MPB_DESC_LEN);
+        jfld(p, 500, "version", ver, MPB_VER_LEN);
+        jfld(p, 500, "language", lang, 32);
+        jfld(p, 500, "license", lic, MPB_NAME_LEN);
 
         if (name[0]) {
             printf("  %-20s %8s  [%-5s]  %-10s  %s\n",

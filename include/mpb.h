@@ -27,7 +27,7 @@
 
 /* ---- Registry URL ---- */
 
-#define MPB_REGISTRY   "https://raw.githubusercontent.com/Zaneham/mpb-registry/main"
+#define MPB_REGISTRY   "https://raw.githubusercontent.com/Zaneham/mpb-registry/master"
 
 /* ---- Package languages ---- */
 

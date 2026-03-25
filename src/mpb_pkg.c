@@ -39,12 +39,16 @@ jstr(const char *json, const char *key, char *out, int max)
     const char *p, *end;
     int klen, slen;
 
-    klen = snprintf(pat, sizeof(pat), "\"%s\":\"", key);
+    klen = snprintf(pat, sizeof(pat), "\"%s\":", key);
     if (klen <= 0) return NULL;
 
     p = strstr(json, pat);
     if (!p) return NULL;
     p += klen;
+    /* Skip whitespace and opening quote */
+    while (*p == ' ' || *p == '\t') p++;
+    if (*p == '"') p++;
+    else return NULL;
 
     end = strchr(p, '"');
     if (!end) return NULL;
@@ -76,9 +80,10 @@ mpb_pkg_parse(const char *json, mpb_pkg_t *pkg)
 
     /* Parse files array — look for "files":["a","b","c"] */
     {
-        const char *fa = strstr(json, "\"files\":[");
+        const char *fa = strstr(json, "\"files\":");
+        if (fa) { while (*fa && *fa != '[') fa++; }
         if (fa) {
-            const char *p = fa + 9;
+            const char *p = fa + 1;
             while (*p && *p != ']' && pkg->n_files < MPB_MAX_FILES) {
                 if (*p == '"') {
                     p++;
