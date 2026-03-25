@@ -127,13 +127,17 @@ Fork [mpb-registry](https://github.com/Zaneham/mpb-registry), add a directory un
 
 If your favourite mainframe language isn't here, let us know. The architecture supports adding new ones with a single line of code.
 
-## Building
+## Installation
+
+**Pre-built binary (easiest):** Download `mpb.exe` from the [latest release](https://github.com/Zaneham/mpb/releases) and put it somewhere in your PATH.
+
+**Build from source:**
 
 ```bash
 make
 ```
 
-Requires `gcc`, `curl`, and `git`. Nothing else.
+Either way, you need `curl` and `git` on your system. MPB uses curl to fetch package metadata and git to clone repositories.
 
 ## Contributing
 
