@@ -37,6 +37,9 @@
 #define MPB_REXX    4
 #define MPB_JCL     5
 #define MPB_FORTRAN 6
+#define MPB_ALGOL   7
+#define MPB_NEWP    8
+#define MPB_WFL     9
 
 /* ---- Package metadata ---- */
 

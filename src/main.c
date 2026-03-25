@@ -24,7 +24,8 @@ usage(void)
     printf("  info <pkg>          show package details\n");
     printf("  list                show installed packages\n");
     printf("  init <name> <lang>  create a new package.json\n\n");
-    printf("languages: cobol, hlasm, pli, rexx, jcl, fortran\n\n");
+    printf("languages: cobol, hlasm, pli, rexx, jcl, fortran,\n");
+    printf("           algol, newp, wfl\n\n");
     printf("examples:\n");
     printf("  mpb install dateutil\n");
     printf("  mpb install zblas\n");
@@ -91,6 +92,9 @@ main(int argc, char **argv)
             else if (strcmp(argv[3], "rexx") == 0) lang = MPB_REXX;
             else if (strcmp(argv[3], "jcl") == 0) lang = MPB_JCL;
             else if (strcmp(argv[3], "fortran") == 0) lang = MPB_FORTRAN;
+            else if (strcmp(argv[3], "algol") == 0) lang = MPB_ALGOL;
+            else if (strcmp(argv[3], "newp") == 0) lang = MPB_NEWP;
+            else if (strcmp(argv[3], "wfl") == 0) lang = MPB_WFL;
         }
         return mpb_init(name, lang) == 0 ? 0 : 1;
     }

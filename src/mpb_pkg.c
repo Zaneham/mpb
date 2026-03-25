@@ -15,6 +15,9 @@ mpb_lang_str(uint8_t lang)
     case MPB_REXX:  return "rexx";
     case MPB_JCL:     return "jcl";
     case MPB_FORTRAN: return "fortran";
+    case MPB_ALGOL:   return "algol";
+    case MPB_NEWP:    return "newp";
+    case MPB_WFL:     return "wfl";
     default:          return "unknown";
     }
 }
@@ -28,6 +31,9 @@ lang_from_str(const char *s)
     if (strcmp(s, "rexx") == 0)  return MPB_REXX;
     if (strcmp(s, "jcl") == 0)     return MPB_JCL;
     if (strcmp(s, "fortran") == 0) return MPB_FORTRAN;
+    if (strcmp(s, "algol") == 0)   return MPB_ALGOL;
+    if (strcmp(s, "newp") == 0)    return MPB_NEWP;
+    if (strcmp(s, "wfl") == 0)     return MPB_WFL;
     return 0;
 }
 

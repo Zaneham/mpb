@@ -125,8 +125,13 @@ Fork [mpb-registry](https://github.com/Zaneham/mpb-registry), add a directory un
 | pli | PL/I | .pli |
 | jcl | JCL | .jcl |
 | fortran | Fortran | .f, .f77, .f90 |
+| algol | ALGOL | .alg |
+| newp | NEWP | .newp |
+| wfl | WFL | .wfl |
 
-If your favourite mainframe language isn't here, let us know. The architecture supports adding new ones with a single line of code.
+ALGOL, NEWP, and WFL are for the Unisys (Burroughs) folks. Yes, we know you're out there. Yes, we remembered you. You're welcome.
+
+If your favourite mainframe language still isn't here, let us know. The architecture supports adding new ones with a single line of code.
 
 ## Installation
 
