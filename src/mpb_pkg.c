@@ -13,8 +13,9 @@ mpb_lang_str(uint8_t lang)
     case MPB_HLASM: return "hlasm";
     case MPB_PLI:   return "pli";
     case MPB_REXX:  return "rexx";
-    case MPB_JCL:   return "jcl";
-    default:        return "unknown";
+    case MPB_JCL:     return "jcl";
+    case MPB_FORTRAN: return "fortran";
+    default:          return "unknown";
     }
 }
 
@@ -25,7 +26,8 @@ lang_from_str(const char *s)
     if (strcmp(s, "hlasm") == 0) return MPB_HLASM;
     if (strcmp(s, "pli") == 0)   return MPB_PLI;
     if (strcmp(s, "rexx") == 0)  return MPB_REXX;
-    if (strcmp(s, "jcl") == 0)   return MPB_JCL;
+    if (strcmp(s, "jcl") == 0)     return MPB_JCL;
+    if (strcmp(s, "fortran") == 0) return MPB_FORTRAN;
     return 0;
 }
 

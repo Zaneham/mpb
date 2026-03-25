@@ -36,6 +36,7 @@
 #define MPB_PLI     3
 #define MPB_REXX    4
 #define MPB_JCL     5
+#define MPB_FORTRAN 6
 
 /* ---- Package metadata ---- */
 
