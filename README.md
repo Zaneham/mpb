@@ -2,7 +2,7 @@
 
 Mainframe Package Bureau.
 
-Welcome. Pull up a chair. You're among friends here.
+Welcome!
 
 The mainframe community has been sharing code longer than most programming communities have existed. The CBT Tape has been circulating since 1975, back when sharing software meant Arnold Casinghino physically mailing magnetic tapes to people who needed them. Before GitHub, before SourceForge, before the phrase "open source" was even coined, mainframe programmers were distributing assembler macros, ISPF dialogs, and COBOL copybooks to each other on reels of tape through the postal service. That is the tradition this project stands on.
 
