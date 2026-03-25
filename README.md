@@ -14,10 +14,11 @@ If you have something useful sitting on your system that other people might bene
 
 ## Quick Start
 
+Download `mpb.exe` from the [latest release](https://github.com/Zaneham/mpb/releases), then:
+
 ```bash
-make
-./mpb search
-./mpb install cobol-dateutil
+mpb search
+mpb install cobol-dateutil
 ```
 
 The copybooks are now in `mpb_packages/cobol-dateutil/src/` and you can COPY them into your program.
