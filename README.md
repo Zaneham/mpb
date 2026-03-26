@@ -73,9 +73,12 @@ $ mpb search
   ftpb                    1.0.0  [rexx ]  GPL-2.0     FTP from ISPF
   whoson                  1.0.0  [rexx ]  GPL-2.0     TSO users across the sysplex
   omvscmds                1.0.0  [rexx ]  GPL-2.0     OMVS shell commands from ISPF
+  algol-stringlib         0.1.0  [algol]  Apache-2.0  String handling for Burroughs Extended ALGOL
+  rpg-dateutil            1.1.0  [rpg  ]  Apache-2.0  Date utilities, business days, NZ holidays
+  cobol-jsonutil          1.0.0  [cobol]  Apache-2.0  JSON parser, query engine, and builder
 ```
 
-Three languages, two contributors, and growing. If you have something to share we would love to have it.
+Ten languages, and growing. If you have something to share we would love to have it.
 
 ## License Checking
 
@@ -128,6 +131,7 @@ Fork [mpb-registry](https://github.com/Zaneham/mpb-registry), add a directory un
 | algol | ALGOL | .alg |
 | newp | NEWP | .newp |
 | wfl | WFL | .wfl |
+| rpg | RPG | .rpgle, .sqlrpgle |
 
 ALGOL, NEWP, and WFL are for the Unisys (Burroughs) folks. Yes, we know you're out there. Yes, we remembered you. You're welcome.
 
